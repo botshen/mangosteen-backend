@@ -1,13 +1,23 @@
 # app/controllers/blogs_controller.rb
 
-class BlogsController < ApplicationController
+class Api::V1::BlogsController < ApplicationController
 
   # GET /blogs or /blogs/page/:page
+  # need sort order GET /blogs?order=asc or GET /blogs?order=desc
   def index
-    per_page = 10
-    sort_order = params[:order] == 'asc' ? 'created_at ASC' : 'created_at DESC'
+    per_page = 5
+    sort_order = params[:order] == 'ascend' ? 'created_at ASC' : 'created_at DESC'
     @blogs = Blog.all.order(sort_order).page(params[:page]).per(per_page)
-    render json: @blogs
+    render json: { resources: @blogs, pager: {
+      page: params[:page] || 1,
+      per_page: 5,
+      count: Blog.count
+    }}
+   end
+
+  def show
+    blog = Blog.find params[:id]
+    render json: { resource: blog }
   end
 
   # POST /blogs
@@ -38,6 +48,7 @@ class BlogsController < ApplicationController
   end
 
   private
+
   def blog_params
     params.require(:blog).permit(:title, :content)
   end
